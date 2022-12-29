@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} {{user.username}} | ShopCart {% endblock %}
+{% block content %}
+
+<!-- Breadcrumb Section Begin -->
+    <section class="breadcrumb-option">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="breadcrumb__text">
+                        <h4>Shopping Cart</h4>
+                        <div class="breadcrumb__links">
+                            <a href="/">Home</a>
+                            <a href="/products">Shop</a>
+                            <span>Shopping Cart</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{message.tags}}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+<!-- Breadcrumb Section End -->
+
+        <!-- Shopping Cart Section Begin -->
+    <section class="shopping-cart spad">
+        {% if request.user.is_authenticated %}
+    {% if shopcart %}
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="shopping__cart__table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+		                    {% for rs in shopcart %}
+                                <tr>
+
+                                    <td class="product__cart__item">
+                                        <div class="product__cart__item__pic">
+                                            {% if rs.variant.image_id  > 0 %}
+                                            <img src="{{rs.variant.image }}" alt="" style="height: 50px; width: 60px ">
+                                            {% else %}
+                                            <img src="{{rs.product.image.url}}" alt="" style="height: 50px;width: 60px">
+                                            {% endif %}
+                                        </div>
+                                        <div class="product__cart__item__text">
+                                            <h6>{{rs.product.name}} ( {{ rs.variant.size }}  &  {{ rs.variant.color }} )</h6>
+
+                                            {% if rs.product.variant == 'None' %}
+                                            <h5>{{ rs.product.default_price }}</h5>
+                                            {% else %}
+                                                <h5>{{ rs.variant.price }}</h5>
+                                            {% endif %}
+
+
+                                        </div>
+                                    </td>
+
+                                    <td class="quantity__item">
+                                        <div class="quantity">
+                                            <div class="pro-qty-2">
+                                                <input type="text" value={{rs.quantity}}>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                {% if rs.product.variant == 'None' %}
+                                    <td class="cart__price">{{ rs.total_price }}</td>
+                                {% else %}
+                                    <td class="cart__price">{{ rs.vamount }}</td>
+                                {% endif %}
+
+                                    <td class="text-right"><a href="/order/deletefromcart/{{ rs.id }}" onclick="return confirm('Delete ! Are you sure?')" class="cart__close"><i class="fa fa-close"></i></a></td>
+
+
+                                </tr>
+                        {% endfor %}
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="continue__btn">
+                                <a href="{% url 'products' %}">Continue Shopping</a>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="continue__btn update__btn">
+                                <a href="#"><i class="fa fa-spinner"></i> Update cart</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="cart__discount">
+                        <h6>Discount codes</h6>
+                        <form action="#">
+                            <input type="text" placeholder="Coupon code">
+                            <button type="submit">Apply</button>
+                        </form>
+                    </div>
+                    <div class="cart__total">
+                        <h6>Cart total</h6>
+                        <ul>
+                            <li>Subtotal <span>{{ total }}</span></li>
+                            <li>Total <span>{{ total }}</span></li>
+                        </ul>
+                        <a href="{% url 'orderproduct' %}" class="primary-btn">Proceed to checkout</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+               {% else %}
+				<h3 colspan="4" style="width:100%;text-align:center;">there is no product !</h3>
+			{% endif %}
+            {% else %}
+            <h3 colspan="4" style="width:100%;text-align:center;"><a href="{% url 'login' %}">You Have To Login First !</a> </h3>
+            {% endif %}
+
+    </section>
+
+
+    <!-- Shopping Cart Section End -->
+
+
+
+
+
+
+{% endblock %}

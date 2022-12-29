@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} Samazon | {{ product.name }} {% endblock %}
+{% block content %}
+
+
+
+    <!-- Shop Details Section Begin -->
+    <section class="shop-details">
+        <div class="product__details__pic">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="product__details__breadcrumb">
+                            <a href="/">Home</a>
+                            <a href="/products/">Shop</a>
+                            <span>{{ product.name }}</span>
+                        </div>
+                    </div>
+                </div>
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{message.tags}}" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+                <div class="row">
+                    <div class="col-lg-3 col-md-3">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-toggle="tab" href="#tabs-1" role="tab">
+                                    {% if variant.image_id > 0 %}
+                                    <div class="product__thumb__pic set-bg" data-setbg="{{ variant.image }}"></div>
+                                    {% else %}
+                                    <div class="product__thumb__pic set-bg" data-setbg="{{ product.default_img.url }}"></div>
+                                    {% endif %}
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" data-toggle="tab" href="#tabs-2" role="tab">
+                                    {% for rs in image %}
+                                    <div class="product__thumb__pic set-bg" data-setbg="{{ rs.image.url }}"></div>
+                                    {% endfor %}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-6 col-md-9">
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="tabs-1" role="tabpanel">
+                                <div class="product__details__pic__item">
+                                    {% if variant.image_id > 0 %}
+                                    <img src="{{ variant.image }}" alt="">
+                                    {% else %}
+                                    <img src="{{ product.default_img.url }}" alt="">
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% for rs in image %}
+                            <div class="tab-pane" id="tabs-2" role="tabpanel">
+                                <div class="product__details__pic__item">
+                                    <img src="{{ rs.image.url }}" alt=""></div>
+                            </div>
+                            {% endfor %}
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+                                <script>
+                                $(document).on('change', '#post-form',function(e){
+                                    e.preventDefault();
+                                    $.ajax({
+                                        type:'POST',
+                                        url:'{% url "ajaxcolor" %}',
+                                        data:{
+                                            productid:$('#productid').val(),
+                                            size:$('#size').val(),
+                                            csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+                                            action: 'post'
+                                        },
+                                        data_type : 'html',
+                                        success: function (data) {
+                                            console.log("success");
+                                            $('#appendHere').html(data.rendered_table);
+                                        },
+                                        error: function (data) {
+                                            alert("Got an error dude " + data);
+                                        }
+                                    });
+                                });
+                            </script>
+        <div class="product__details__content">
+            <div class="container">
+                <div class="row d-flex justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="product__details__text">
+                            <h4>{{ product.name }}</h4>
+
+                                {% if  product.variant == 'None'   %}
+                            <h3>{{product.default_price }}</h3>
+                        {% else %}
+                        <h3>{{variant.price}}</h3>
+                        {% endif %}
+
+                            <p>{{ product.mini_description|safe }}</p>
+
+
+                            <div class="product__details__option">
+                                {% if product.variant == 'Size-Color' %}
+                                <div class="product__details__option__size">
+                                    <form method="POST" id="post-form">
+                                     <input type="hidden" name="productid" id="productid" value="{{ product.id }}">
+                                    <span>Size:</span>
+                                        {% csrf_token %}
+
+                                        {% for rs in sizes %}
+                                                    <select name="size" id="size">
+                                                        {% for rs in sizes %}
+                                                            <option {% if variant.size_id == rs.size_id %} selected {% endif %} value="{{ rs.size_id }}">{{ rs.size.name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                            </form>
+                                        {% endfor %}
+                                </div>
+
+                                            <form method="post" action="?q=selectvariant" id="post-color">
+                                                {% csrf_token %}
+                                <div class="product__details__option__color">
+                                    <input type="hidden" name="size" id="size" value="{{ size_id }}">
+                                    <span>Color:</span>
+                                                        {% for rs in colors %}
+                                                            <input type="radio"  {% if variant.id == rs.id %} checked {% endif %} name="variantid" id="variantid" value="{{ rs.id }}" onchange="this.form.submit();">
+                                                            <li  {% if variant.id == rs.id %} class="active" {% endif %}>
+                                                                <a style="background-color:{{ rs.color.code }}; color: #D9D9D9; text-shadow: 1px 1px #000000; width: 90px">
+                                                                    {{ rs.price }}  {{ rs.color }}
+                                                                </a>
+                                                                <img src="{{ rs.image }}" style="height: 70px">
+                                                            </li>
+                                                        {% endfor %}
+                                </form>
+
+                                </div>
+                            </div>
+                                                        {% elif product.variant == 'Size' %}
+                                        <form method="post" action="?q=selectvariant" id="post-color">
+                                            {% csrf_token %}
+                                            <div id="appendHere">
+                                                <input type="hidden" name="size" id="size" value="{{ size_id }}">
+                                                <ul class="color-option" >
+                                                    <li><span class="text-uppercase">Size:</span></li>
+                                                    {% for rs in sizes %}
+                                                        <input type="radio"  {% if variant.id == rs.id %} checked {% endif %} name="variantid" id="variantid" value="{{ rs.id }}" onchange="this.form.submit();">
+                                                        <li  {% if variant.id == rs.id %} class="active" {% endif %}>
+                                                            <a style=" color: #204d74;  width: 90px">
+                                                                ${{ rs.size }}<br> {{ rs.price}}
+                                                            </a>
+                                                        </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        </form>
+
+                                    {% elif product.variant == 'Color' %}
+                                        <form method="post" action="?q=selectvariant" id="post-color">
+                                            {% csrf_token %}
+                                            <div id="appendHere">
+                                                <input type="hidden" name="size" id="size" value="{{ size_id }}">
+                                                <ul class="color-option" >
+                                                    <li><span class="text-uppercase">Color:</span></li>
+                                                    {% for rs in colors %}
+                                                        <input type="radio"  {% if variant.id == rs.id %} checked {% endif %} name="variantid" id="variantid" value="{{ rs.id }}" onchange="this.form.submit();">
+                                                        <li  {% if variant.id == rs.id %} class="active" {% endif %}>
+                                                            <a style="background-color:{{ rs.color.code }}; color: #D9D9D9; text-shadow: 1px 1px #000000; width: 90px">
+                                                                {{ rs.price}} {{ rs.color }}
+                                                            </a>
+                                                            <img src="{{ rs.image }}" style="height: 70px">
+                                                        </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+
+                                        </form>
+                                        </div>
+                                    {% endif %}
+
+
+
+
+                            {% if  product.variant != 'None'   %}
+                                <form action="/order/addtoshopcart/{{ product.id }}" method="post"  id="addchart-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="variantid" id="variantid" value="{{ variant.id }}">
+                                    <div id="SelectedProduct">
+                                        <p><strong>Availability:</strong> {% if variant.quantity > 0  %} In Stock {% else %} Out of Stock {% endif %}</p>
+                                        <p><strong>Selected :</strong> Size : {{ variant.size }}  Color : {{ variant.color }} </p>
+                                        <h3 class="product-price">${{ variant.price}}</h3>
+                                        <div class="qty-input">
+                                            <span class="text-uppercase">QTY: </span>
+                                            <input class="input" name="quantity" type="number" value="1" min="1" max="{{ variant.quantity }}">
+                                            {% if request.user.is_authenticated %}
+                                            <button type="submit" {% if variant.quantity < 1  %} disabled {% endif %} class="primary-btn add-to-cart">
+                                                <i class="fa fa-shopping-cart"></i> Add to Cart
+                                            </button>
+                                            {% else %}
+                                            <a href="{% url 'login' %}"  class="primary-btn add-to-cart">
+                                                 Login First
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </form>
+                            {% else %}
+
+                                <form action="/order/addtoshopcart/{{ product.id }}" method="post"  id="addchart-form">
+                                    {% csrf_token %}
+                                    <div id="SelectedProduct">
+                                        <p><strong>Availability:</strong> {% if product.amount > 0  %} In Stock {% else %} Out of Stock {% endif %}</p>
+                                        <h3 class="product-price">{{ product.default_price }}</h3>
+                                        <div class="qty-input">
+                                            <span class="text-uppercase">QTY: </span>
+                                            <input class="input" name="quantity" type="number" value="1" min="1" max="{{ product.amount }}">
+                                            {% if  request.user.is_authenticated %}
+                                            <button type="submit" {% if product.amount < 1  %} disabled {% endif %} class="primary-btn add-to-cart">
+                                                <i class="fa fa-shopping-cart"></i> Add to Cart
+                                            </button>
+                                            {% else %}
+                                            <a href="{% url 'login' %}" class="primary-btn add-to-cart">
+                                                Login First
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </form>
+
+                            {% endif %}
+                        </div>
+                        <br>
+
+                            <div class="product__details__last__option">
+                                <h5><span>Guaranteed Safe Checkout</span></h5>
+                                <img src="{% static 'img/shop-details/details-payment.png' %}" alt="">
+                                <ul>
+                                    <li><span>Products ID:</span> {{ product.id }}</li>
+                                    <li><span>Categories:</span> {{ product.category.catname }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="product__details__tab">
+                            <ul class="nav nav-tabs" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" data-toggle="tab" href="#tabs-5"
+                                    role="tab">Description</a>
+                                </li>
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="tabs-5" role="tabpanel">
+                                    <div class="product__details__tab__content">
+                                        <div class="product__details__tab__content__item">
+                                        </div>
+                                        <div class="product__details__tab__content__item">
+                                            <p>{{ product.description|safe }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Shop Details Section End -->
+
+    <!-- Related Section Begin -->
+    <!-- Related Section End -->
+
+
+{% endblock %}
